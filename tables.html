@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>威海市区车辆详情信息</title>
+    <link rel="stylesheet" href="css/common.css"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/table.css">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="js/jquery-2.2.4.js"></script>
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <!--<script src="asserts/js/browser.js"></script>-->
+</head>
+<body>
+<div>
+    <div class="head">威海交通大数据</div>
+    <div class="fenye">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+               <!-- <li>
+                    <a href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                &lt;!&ndash;<li><a href="#">4</a></li>&ndash;&gt;
+                &lt;!&ndash;<li><a href="#">5</a></li>&ndash;&gt;
+                <li>
+                    <a href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>-->
+            </ul>
+        </nav>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>车牌号</th>
+            <th>所属公司</th>
+            <th>所在位置</th>
+            <th>驾驶员信息</th>
+        </tr>
+        </thead>
+        <tbody id="tbody">
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+<script>
+    //从json中随机抽取数据
+    var pageSize=15;
+    var pageNum=1;
+    var dataUrl="http://60.212.191.147:8082/taxi";
+    //var dataUrl="http://localhost:8088/taxi";
+    $(function(){
+        gridTableData(pageNum);
+    });
+    function joinPageHtml(data){
+        var htmls="";
+        var pre=parseInt(pageNum)-1;
+        var next=parseInt(pageNum)+1;
+        if(pre<0){
+            pre=1;
+        };
+        if(next>parseInt(data.totalPage)){
+            next=parseInt(data.totalPage);
+        }
+        //上一页
+        htmls+=' <li><a href="###" onclick=gridTableData('+pre+') aria-label="Previous">';
+        htmls+='<span aria-hidden="true">&laquo;</span> </a> </li>';
+        for(var x=1;x<parseInt(data.totalPage)+1;x++){
+            if(x==pageNum){
+                htmls+='<li class="active"><a href="###"  onclick=gridTableData('+x+')>'+x+'</a></li>';
+            }else{
+                htmls+='<li><a href="###"  onclick=gridTableData('+x+')>'+x+'</a></li>';
+            }
+        }
+        //下一页
+        htmls+='<li><a href="###" onclick=gridTableData('+next+') aria-label="Next">';
+        htmls+=' <span aria-hidden="true">&raquo;</span></a></li>';
+        $(".pagination").html(htmls);
+    }
+    function gridTableData(mPageNum){
+        pageNum=mPageNum;
+        $.ajax({
+            url: dataUrl+"/taxi/gridTableDataAjax",
+            type: 'post',
+            dataType: 'JSONP',//here
+            data:{"x":GetQueryString("x"),"y":GetQueryString("y"),"pageNum":pageNum,"pageSize":pageSize},
+            contentType:'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                var htmls="";
+                $.each(data.data.list,function(index,item){
+                    htmls+= '<tr>';
+                    htmls+= '<td>'+(item.carnumber==null?"":item.carnumber)+'</td>';
+                    htmls+= '<td>'+(item.orgion==null?"":item.orgion)+'</td>';
+                    htmls+= '<td>'+item.baidu_longitude+','+item.baidu_latitude+'</td>';
+                    var driver=(item.divername==null?"":item.divername)+'('+(item.tel==null?"":item.tel)+')';
+                    if(driver=="()"){
+                        driver="";
+                    }
+                    htmls+= '<td>'+driver+'</td>';
+                    htmls+= ' </tr>';
+
+                });
+                $("#tbody").html(htmls);
+                //组装分页
+                joinPageHtml(data.data);
+            }
+        });
+    }
+
+    function GetQueryString(name){
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)return  unescape(r[2]); return null;
+    }
+</script>

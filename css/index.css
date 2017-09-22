@@ -1,0 +1,85 @@
+body{
+    background: url("../images/bac.jpg") no-repeat center center;
+    background-size: 100% 100%;
+    min-width: 1200px;
+}
+.header{
+    text-align: center;
+    font-size: 1.5em;
+    padding: 0.5em;
+    color: #66ccff;
+}
+.box{
+    width: 20em;
+    height: 23em;
+    background: url("../images/login.png") no-repeat center center;
+    background-size:100% 100%;
+    position: fixed;
+    top:6.5em;
+    right:17em ;
+}
+.box-head{
+    text-align: center;
+    margin-top: 0.4em;
+    color: white;
+    font-size: 1.2em;
+}
+.input-box{
+   text-align: center;
+  margin-top:7.5em;
+}
+.input-box input{
+    padding: 0.7em 2em;
+    margin-bottom: 1em;
+    border-radius: 5px;
+    border: 1px solid lightgray;
+    box-shadow: 1px 1px 3px lightgray;
+    padding-left: 3em;
+    padding-right: 0;
+}
+.username div{
+    width: 1.5em;
+    height: 1.5em;
+    display: block;
+    background: url("../images/name.png") no-repeat;
+    background-size:80% 80%;
+    position: absolute;
+    left: 3em;
+    margin: 0.6em 1em;
+}
+.pwd div{
+    width: 1.5em;
+    height:1.5em;
+    display: block;
+    background: url("../images/pwd.png") no-repeat;
+    background-size:80% 80%;
+    position: absolute;
+    left: 3em;
+    margin: 0.6em 1em;
+}
+.input-box div a{
+    font-size:0.7em;
+    color: #666;
+    display: inline-block;
+    position: absolute;
+    bottom: 10em;
+    right: 4.5em;
+
+}
+.input-box .submit{
+    padding: 0.2em 1em;
+    border-radius: 5px;
+    background-color: #2e6da4;
+    border: none;
+    color: white;
+    margin-top:2.53em;
+    font-weight: 600;
+    font-size: 1.2em;
+}
+.foot{
+    position: absolute;
+    bottom: 5px;
+    left: 35%;
+    color: #333;
+    font-size: 12px;
+}

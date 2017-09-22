@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            /*background-color: pink;*/
+        }
+        .btn{
+            width: 1.2em;
+            height: 1em;
+            background: url("images/enlarge.png") no-repeat;
+            background-size: 100% 100%;
+            position: absolute;
+            top:  0.4em;
+            right:1em;
+            cursor: pointer;
+        }
+        .header{
+            width:100%;
+            font-size: 0.8em;
+            background-color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0.4em 0;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="css/common.css"/>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <!--<script src="asserts/js/browser.js"></script>-->
+    <script src="js/jquery-2.2.4.js"></script>
+    <script src="js/echarts.js"></script>
+    <script src="js/dataTool.min.js"></script>
+    <script src="js/china.js"></script>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=2BA7Gw1hDVLRqfuKm9ApS9SAUngYPwUj"></script>
+    <script src="js/bmap.min.js"></script>
+
+
+</head>
+<body>
+<div id="container"></div>
+
+<div class="header">
+    <h1>威海重点营运车辆易超速路段分布</h1>
+    <div class="btn"></div>
+</div>
+</body>
+</html>
+<script type="text/javascript">
+    var dom = document.getElementById("container");
+    var myChart = echarts.init(dom);
+    var app = {};
+    option = null;
+
+    //    app.title = '热力图与百度地图扩展';
+    //{ [    {},{},{}   ] }
+    $.get('js/cssl-all.json', function (data) {
+      /*  var points = [].concat.apply([], data.map(function (track) {
+            return track.map(function (seg) {
+                return seg.coord.concat([1]);
+            });
+        }));*/
+//      console.log(data)
+        var points=[];
+        $.each(data.data,function(index,item){
+            points.push([item.lon,item.lat,item.cssl]);
+        });
+        myChart.setOption(option = {
+            animation: false,
+            bmap: {center: [122.1, 37.42], zoom: 13, roam: false}, //roam: true 支持放大缩小
+            visualMap: {
+                show: false,
+                top: 'top',
+                min: 0,
+                max: 5,
+                seriesIndex: 0,
+                calculable: true,
+                inRange: {color: ['blue', 'blue', 'green', 'yellow', 'red']}
+            },
+            series: [{type: 'heatmap', coordinateSystem: 'bmap', data: points, pointSize: 5, blurSize: 3}]
+        });
+        if (!app.inNode) {
+            // 添加百度地图插件
+            var bmap = myChart.getModel().getComponent('bmap').getBMap();
+//            bmap.addControl(new BMap.MapTypeControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT}));  //地图类型控件
+//            BMAP_ANCHOR_TOP_LEFT 表示控件定位于地图的左上角
+//            BMAP_ANCHOR_TOP_RIGHT 表示控件定位于地图的右上角
+//            BMAP_ANCHOR_BOTTOM_LEFT 表示控件定位于地图的左下角
+//            BMAP_ANCHOR_BOTTOM_RIGHT 表示控件定位于地图的右下角
+            bmap.enableDragging();     //允许拖拽地图
+        }
+
+    });
+    if (option && typeof option === "object") {
+        myChart.setOption(option, true);
+    }
+    $(".btn").click(function () {
+        window.open('map.html' , '_blank')
+    })
+
+</script>

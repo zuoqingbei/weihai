@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/common.css"/>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <!--<script src="asserts/js/browser.js"></script>-->
+    <script src="js/jquery-2.2.4.js"></script>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=NWHGS6FWCfIKZHGkpXVMRyfnn8fQV80r"></script>
+    <script src="js/bmap.min.js"></script>
+
+</head>
+<body>
+<div id="map_container" style="width:500px;height:320px;"></div>
+
+</body>
+</html>
+<script>
+    var map = new BMap.Map('map_container', {defaultCursor: 'default'});
+    map.centerAndZoom(new BMap.Point(116.404, 39.915), 13);
+
+    var TILE_SIZE = 128;
+
+    map.addEventListener('click', function(e){
+        console.log(e)
+        var info = new BMap.InfoWindow('', {width: 260});
+        var projection = this.getMapType().getProjection();
+
+        var lngLat = e.point;
+        var lngLatStr = "经纬度：" + lngLat.lng + ", " + lngLat.lat;
+
+        var worldCoordinate = projection.lngLatToPoint(lngLat);
+        var worldCoordStr = "平面坐标：" + worldCoordinate.x + ", " + worldCoordinate.y;
+
+        var pixelCoordinate = new BMap.Pixel(Math.floor(worldCoordinate.x * Math.pow(2, this.getZoom() - 18)),
+            Math.floor(worldCoordinate.y * Math.pow(2, this.getZoom() - 18)));
+        var pixelCoordStr = "像素坐标：" + pixelCoordinate.x + ", " + pixelCoordinate.y;
+
+        var tileCoordinate = new BMap.Pixel(Math.floor(pixelCoordinate.x / TILE_SIZE),
+            Math.floor(pixelCoordinate.y / TILE_SIZE));
+        var tileCoordStr = "图块坐标：" + tileCoordinate.x + ", " + tileCoordinate.y;
+
+        var viewportCoordinate = map.pointToPixel(lngLat);
+        var viewportCoordStr = "可视区域坐标：" + viewportCoordinate.x + ", " + viewportCoordinate.y;
+
+        var overlayCoordinate = map.pointToOverlayPixel(lngLat);
+        var overlayCoordStr = "覆盖物坐标：" + overlayCoordinate.x + ", " + overlayCoordinate.y;
+
+        info.setContent(lngLatStr + worldCoordStr + pixelCoordStr + tileCoordStr +
+            viewportCoordStr + overlayCoordStr);
+        map.openInfoWindow(info, lngLat);
+    });
+
+</script>

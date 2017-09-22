@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>威海交通大数据登录</title>
+    <!--<link rel="stylesheet" href="asserts/css/bootstrap.min.css"/>-->
+    <link rel="stylesheet" href="css/common.css"/>
+    <link rel="stylesheet" href="css/index.css">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--[if lt IE 9]>
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <script src="asserts/js/browser.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div class="bac">
+    <div class="header">威海交通大数据</div>
+    <div class="box">
+        <div class="box-head">用户登录</div>
+        <div class="input-box">
+            <div class="username">
+                <div></div>
+                <input type="text" id="name" placeholder="请输入用户名"/>
+            </div>
+            <div class="pwd">
+                <div></div>
+                <input type="password" id="pwd" placeholder="请输入密码"/>
+            </div>
+            <div><a href="#">忘记密码？</a></div>
+            <button class="submit" type="button">登录</button>
+        </div>
+    </div>
+    <div class="foot">
+        <div>
+            技术支持：山东渔翁信息技术股份有限公司&ensp;&ensp;电话：400-6686188
+        </div>
+    </div>
+</div>
+
+</body>
+<script src="asserts/js/jquery.js"></script>
+<!--<script src="asserts/js/bootstrap.min.js"></script>-->
+<script>
+    $(function () {
+
+        $('.submit').click(function () {
+            var username = $('#name').val();
+            var pwd = $("#pwd").val();
+            if(username === '' && pwd === ''){
+                alert('请输入用户名和密码');
+                return;
+            }
+            if (username === 'whjtj' && pwd === '123') {
+                alert('欢迎进入')
+            } else {
+                alert('用户不存在');
+                $('#name').val("");
+                $('#pwd').val("");
+            }
+        })
+    })
+
+</script>
+</html>

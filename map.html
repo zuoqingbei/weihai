@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>威海重点营运车辆易超速路段分布</title>
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            /*background-color: pink;*/
+        }
+
+        .btn {
+            width: 1.2em;
+            height: 1em;
+            background: url("images/enlarge.png") no-repeat;
+            background-size: 100% 100%;
+            position: absolute;
+            top: 0.4em;
+            right: 1em;
+            cursor: pointer;
+        }
+
+        .header {
+            width: 100%;
+            font-size: 0.8em;
+            background-color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0.4em 0;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="css/common.css"/>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <!--<script src="asserts/js/browser.js"></script>-->
+    <script src="js/jquery-2.2.4.js"></script>
+
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=2BA7Gw1hDVLRqfuKm9ApS9SAUngYPwUj"></script>
+    <!--<script type="text/javascript"-->
+            <!--src="http://api.map.baidu.com/api?v=2.0&ak=NWHGS6FWCfIKZHGkpXVMRyfnn8fQV80r"></script>-->
+    <script src="js/bmap.min.js"></script>
+    <!--<script src="js/bmap.min.js"></script>-->
+
+    <script src="js/Heatmap_min.js"></script>
+
+
+</head>
+<body>
+<div id="container"></div>
+
+<div class="header">
+    <h1>威海重点营运车辆易超速路段分布</h1>
+    <div class="btn"></div>
+</div>
+</body>
+</html>
+<!--百度地图热力图-->
+<script type="text/javascript">
+    var map = new BMap.Map("container");            // 创建Map实例
+    var point = new BMap.Point(122.1, 37.5); // 创建点坐标
+    map.centerAndZoom(point, 13);             // 初始化地图，设置中心点坐标和地图级别
+    map.enableScrollWheelZoom(); // 允许滚轮缩放
+//    var carvalue;
+    var points = [];
+//    var trantePoints = [];//转化后点
+//    var count = 0;
+//    var strArr = [];
+
+
+    //坐标转换完之后的回调函数
+//    translateCallback = function (data) {
+////        console.log(data)
+//        if (data.status === 0) {
+//            var marker = new BMap.Marker(data.points[0]);
+//            map.addOverlay(marker);               // 将标注添加到地图中
+//            var obj = new Object();
+//            obj.lng = data.points[0].lng;
+//            obj.lat = data.points[0].lat;
+//            obj.count = carvalue;
+//            trantePoints.push(obj);
+//            var str = '{' + '"lon":' + '"' + data.points[0].lng + '"' + ',"lat":' + '"' + data.points[0].lat + '"' + ',"cssl":' + carvalue + '},';
+//            heatmapOverlay.setDataSet({data: trantePoints, max: 5});
+////            strArr.push(str);
+////            if (2== strArr.length) {
+////                console.log(strArr.join(''))
+////                // console.log("end")
+////            }
+//        }
+//    };
+
+    getMapData();
+    function getMapData() {
+        $.get('js/cssl-all.json', function (data) {
+            $.each(data.data, function (index, item) {
+                //            points.push([item.lon,item.lat,item.cssl]);
+                var obj = new Object();
+                obj.lng = item.lon;
+                obj.lat = item.lat;
+                obj.count = item.cssl;
+                points.push(obj);
+            })
+            heatmapOverlay = new BMapLib.HeatmapOverlay({"radius": 10});
+            map.addOverlay(heatmapOverlay);
+            heatmapOverlay.setDataSet({data: points, max: 5});
+            //是否显示热力图
+            heatmapOverlay.show();
+//            //转换坐标点
+//            //     for(var i=0;i<points.length;i++){
+//            for (var i = 19999; i <= 20000; i++) {
+//                point = new BMap.Point(points[i].lng, points[i].lat);
+//                carvalue = points[i].count;
+//                var convertor = new BMap.Convertor();
+//                var pointArr = [];
+//                pointArr.push(point);
+//                convertor.translate(pointArr, 1, 5, translateCallback);
+//            }
+
+        });
+        if (!isSupportCanvas()) {
+            alert('热力图目前只支持有canvas支持的浏览器,您所使用的浏览器不能使用热力图功能~')
+        }
+    }
+
+    function setGradient() {
+        var gradient = {
+            0: 'rgb(102, 255, 0)',
+            .5: 'rgb(255, 170, 0)',
+            1: 'rgb(255, 0, 0)'
+        };
+        heatmapOverlay.setOptions({"gradient": gradient});
+    }
+    //判断浏览区是否支持canvas
+    function isSupportCanvas() {
+        var elem = document.createElement('canvas');
+        return !!(elem.getContext && elem.getContext('2d'));
+    }
+    $(".btn").click(function () {
+        window.open('map.html' , '_blank')
+    })
+</script>

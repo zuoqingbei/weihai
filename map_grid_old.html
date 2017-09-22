@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            /*background-color: pink;*/
+        }
+        .btn{
+            width: 1.2em;
+            height: 1em;
+            background: url("images/enlarge.png") no-repeat;
+            background-size: 100% 100%;
+            position: absolute;
+            top:  0.4em;
+            right:1em;
+            cursor: pointer;
+        }
+        .header{
+            width:100%;
+            font-size: 0.8em;
+            background-color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0.4em 0;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="css/common.css"/>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <!--<script src="asserts/js/browser.js"></script>-->
+    <script src="js/jquery-2.2.4.js"></script>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=2BA7Gw1hDVLRqfuKm9ApS9SAUngYPwUj"></script>
+    <script src="js/bmap.min.js"></script>
+
+
+</head>
+<body>
+<div id="container"></div>
+<div class="header">
+    <h1>威海市区出租车网格化管理</h1>
+    <div class="btn"></div>
+</div>
+</body>
+</html>
+<script>
+    // 百度地图API功能
+    var map = new BMap.Map("container");            // 创建Map实例
+    var point = new BMap.Point(122.1, 37.5); // 创建点坐标
+    map.centerAndZoom(point,13);                 // 初始化地图,设置中心点坐标和地图级别。
+    //    map.enableScrollWheelZoom();                 //启用滚轮放大缩小
+    var bs = map.getBounds();   //获取可视区域
+    var bssw = bs.getSouthWest();   //可视区域左下角
+    var bsne = bs.getNorthEast();   //可视区域右上角
+    var tileLayer = new BMap.TileLayer({isTransparentPng: true});
+    alert("当前地图可视范围是：" + bssw.lng + "," + bssw.lat + "到" + bsne.lng + "," + bsne.lat);
+    // 百度地图API功能
+    var data_info = [];
+    var opts = {
+//        width : 50,     // 信息窗口宽度
+//        height: 50,     // 信息窗口高度
+//        title : "信息窗口" , // 信息窗口标题
+        enableMessage:true//设置允许信息窗发送短息
+    };
+    var dataUrl="http://60.212.191.147:8082/taxi";
+    gridData();
+    //加载网格数据
+    function gridData(){
+        $.ajax({
+            url: dataUrl+"/taxi/taxiLocationIfoAjax",
+            type: 'post',
+            dataType: 'JSONP',//here
+            contentType:'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                $.each(data.data,function(index,item){
+                    //暂时绑定经度 维度 车牌号信息（车牌为null的默认""） 其他信息可依次添加
+                    var info=[item.lon,item.lat,"车牌号："+(item.carnumber==null?"":item.carnumber)];
+//                    var info=[item.lon,item.lat];
+                    data_info.push(info);
+                });
+                //    单个点的点击事件 显示这个点的信息
+                for(var i=0;i<data_info.length;i++){
+                    var myIcon = new BMap.Icon("images/icon2.png", new BMap.Size(16,20));
+                    var marker = new BMap.Marker(new BMap.Point(data_info[i][0],data_info[i][1]),{icon:myIcon});  // 创建标注
+//        var content = data_info[i][2];
+                    var content='';
+                    content += '<span style="">'+'经度：'+data_info[i][0]+'<br>'+'纬度：'+data_info[i][1]+'<br>'+data_info[i][2]+'</span><br>';
+                    map.addOverlay(marker);               // 将标注添加到地图中
+                    addClickHandler(content,marker);
+                }
+            }
+        });
+    }
+    function addClickHandler(content,marker){
+        marker.addEventListener("mouseover",function(e){
+                openInfo(content,e);
+            }
+        );
+    }
+    function openInfo(content,e){
+        var p = e.target;
+        var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+        var infoWindow = new BMap.InfoWindow(content,opts);  // 创建信息窗口对象
+        map.openInfoWindow(infoWindow,point); //开启信息窗口
+    }
+    tileLayer.getTilesUrl = function(tileCoord, zoom) {
+//        console.log(tileCoord);
+        var x = tileCoord.x;
+        var y = tileCoord.y;
+        return "images/border192.png";
+
+    };
+    function add_control(){
+        map.addTileLayer(tileLayer);
+    }
+    function delete_control(){
+        map.removeTileLayer(tileLayer);
+    }
+    function showInfo(e){
+        //alert(e.point.lng + ", " + e.point.lat);
+        //var p = e.target;
+        var page="tables.html?lat="+e.point.lat+"&lon="+e.point.lng;
+        window.open(page , '_blank')
+    }
+    map.addEventListener("click", showInfo);
+    add_control();
+    $(".btn").click(function () {
+        window.open('map_grid.html' , '_blank')
+    })
+        var TILE_SIZE = 96;
+
+        map.addEventListener('click', function(e){
+//            console.log(e)
+            var info = new BMap.InfoWindow('', {width: 260});
+            var projection = this.getMapType().getProjection();
+
+            var lngLat = e.point;
+            var lngLatStr = "经纬度：" + lngLat.lng + ", " + lngLat.lat;
+
+            var worldCoordinate = projection.lngLatToPoint(lngLat);
+            var worldCoordStr = "平面坐标：" + worldCoordinate.x + ", " + worldCoordinate.y;
+
+            var pixelCoordinate = new BMap.Pixel(Math.floor(worldCoordinate.x * Math.pow(2, map.getZoom() - 18)),
+                Math.floor(worldCoordinate.y * Math.pow(2, map.getZoom() - 18)));
+            var pixelCoordStr = "像素坐标：" + pixelCoordinate.x + ", " + pixelCoordinate.y;
+
+            var tileCoordinate = new BMap.Pixel(Math.floor(pixelCoordinate.x / TILE_SIZE),
+                Math.floor(pixelCoordinate.y / TILE_SIZE));
+            var tileCoordStr = "图块坐标：" + tileCoordinate.x + ", " + tileCoordinate.y;
+
+            var viewportCoordinate = map.pointToPixel(lngLat);
+            var viewportCoordStr = "可视区域坐标：" + viewportCoordinate.x + ", " + viewportCoordinate.y;
+
+            var overlayCoordinate = map.pointToOverlayPixel(lngLat);
+            var overlayCoordStr = "覆盖物坐标：" + overlayCoordinate.x + ", " + overlayCoordinate.y;
+
+            info.setContent(lngLatStr + worldCoordStr + pixelCoordStr + tileCoordStr +
+                viewportCoordStr + overlayCoordStr);
+            map.openInfoWindow(info, lngLat);
+        });
+
+</script>

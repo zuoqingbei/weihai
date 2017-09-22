@@ -1,0 +1,47 @@
+body{
+    background: url("../images/bg.png") no-repeat;
+    background-size: 100% 100%;
+}
+.head{
+    width: 100%;
+    text-align: center;
+    font-size: 1.5em;
+    color: white;
+    padding-top: 0.1em;
+}
+.fenye{
+    width: 50%;
+    margin-left: 10%;
+}
+/*.pagination>li>a, .pagination>li>span{*/
+    /*!*padding: 3px 6px;*!*/
+/*}*/
+
+table{
+    width: 80%;
+    height: 80%;
+    margin:4% auto 0 auto;
+    text-align: center;
+    /*border: 1px solid red;*/
+    -webkit-box-shadow:0 0 10px rgba(0, 0, 0, .2);
+    -moz-box-shadow:0 0 10px rgba(0, 0, 0, .2);
+    box-shadow:0 0 10px rgba(0, 0, 0, .2);
+
+}
+
+table tr th{
+    text-align: center;
+    padding: 0.5em 0;
+    color: white;
+    background-color: #66ccff;
+
+}
+table tr td{
+    padding: 0.3em 0;
+}
+table tbody tr:nth-of-type(2n){
+    background-color:white;
+}
+table tbody tr:nth-of-type(2n-1){
+    background-color:#f0f0f0;
+}
