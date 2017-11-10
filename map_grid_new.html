@@ -70,7 +70,7 @@
         enableMessage:true//设置允许信息窗发送短息
     };
   var dataUrl="http://60.212.191.147:8082/taxi";
-   // var dataUrl="http://localhost:8089/taxi";
+    //var dataUrl="http://localhost:8089/taxi";
     gridData(true);
     var cavasInterval;//绘图定时器
     var needReDraw=false;
@@ -114,18 +114,7 @@
         var tileCoordinate = new BMap.Pixel(Math.floor(pixelCoordinate.x / TILE_SIZE),
             Math.floor(pixelCoordinate.y / TILE_SIZE));
         var tileCoordStr = "图块坐标：" + tileCoordinate.x + ", " + tileCoordinate.y;
-
-        //        图块坐标转平面坐标 左下角
-        var pingmian_left=new BMap.Pixel(tileCoordinate.x*80/0.03125,tileCoordinate.y*80/0.03125);
-
-        //        图块坐标转平面坐标 右上角
-        var pingmian_right=new BMap.Pixel((tileCoordinate.x*80+80)/0.03125,(tileCoordinate.y*80+80)/0.03125);
-
-//                 平面坐标转百度坐标
-        var baidu_left=projection.pointToLngLat(pingmian_left);
-        var baidu_right=projection.pointToLngLat(pingmian_right);
-
-        var page="tables.html?leftLat="+baidu_left.lat+"&leftLng="+baidu_left.lng+"&rightLat="+baidu_right.lat+"&rightLng="+baidu_right.lng;
+        var page="tables.html?x="+tileCoordinate.x+"&y="+tileCoordinate.y;
         window.open(page , '_blank');
 
 //        var viewportCoordinate = map.pointToPixel(lngLat);
@@ -160,14 +149,10 @@
                     //    单个点的点击事件 显示这个点的信息
                     //第一次加载数据 绘图 并且开启重绘定时器 获取数据定时器
                     drawMap();
-                   // cavasInterval = window.setInterval("reDrawMap()",5000);
-                    gridDataInterval= window.setInterval("gridData(false)",10000);
+                    cavasInterval = window.setInterval("reDrawMap()",5000);
+                    gridDataInterval= window.setInterval("gridData(false)",8000);
                 }else{
-                    //needReDraw=true;
-                    map.clearOverlays();
-                    console.log("ReDraw");
-                    // window.setTimeout(drawMap(),1000);
-                    drawMap();
+                    needReDraw=true;
                 }
 
             }

@@ -65,6 +65,7 @@
         if (data.status === 0) {
             // 记录各个点所在的图块坐标
             var projection = map.getMapType().getProjection();
+            console.log(projection)
             var resultArr=[];
             for (var i = 0; i < data.points.length; i++) {
                 var lngLat = data.points[i];  //各个点的经纬度
@@ -73,6 +74,22 @@
                     Math.floor(worldCoordinate.y * Math.pow(2, map.getZoom() - 18)));  //平面坐标转换成像素坐标
                 tileCoordinate = new BMap.Pixel(Math.floor(pixelCoordinate.x / TILE_SIZE),
                     Math.floor(pixelCoordinate.y / TILE_SIZE));  //像素坐标转换成图块坐标
+
+
+                //        图块坐标转平面坐标 左下角
+                var pingmian_left=new BMap.Pixel(tileCoordinate.x*80/0.03125,tileCoordinate.y*80/0.03125);
+
+                //        图块坐标转平面坐标 右上角
+                var pingmian_right=new BMap.Pixel((tileCoordinate.x*80+80)/0.03125,(tileCoordinate.y*80+80)/0.03125);
+
+//                 平面坐标转百度坐标
+                var baidu_left=projection.pointToLngLat(pingmian_left);
+                var baidu_right=projection.pointToLngLat(pingmian_right);
+
+                console.log(baidu_right)
+               // var by=projection.PointTolngLat(py);
+
+
                 var content =new Object();
                 content.sim= simArr[i]+"";
                 content.x=tileCoordinate.x+"";

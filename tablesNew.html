@@ -59,7 +59,7 @@
     var pageSize=15;
     var pageNum=1;
     var dataUrl="http://60.212.191.147:8082/taxi";
-    //var dataUrl="http://localhost:8089/taxi";
+    //var dataUrl="http://localhost:8088/taxi";
     $(function(){
         gridTableData(pageNum);
     });
@@ -91,12 +91,10 @@
     function gridTableData(mPageNum){
         pageNum=mPageNum;
         $.ajax({
-            url: dataUrl+"/taxi/gridTableDataAjaxNew",
+            url: dataUrl+"/taxi/gridTableDataAjax",
             type: 'post',
             dataType: 'JSONP',//here
-            data:{"leftLat":GetQueryString("leftLat"),"leftLng":GetQueryString("leftLng"),
-                "rightLat":GetQueryString("rightLat"),"rightLng":GetQueryString("rightLng"),
-                "pageNum":pageNum,"pageSize":pageSize},
+            data:{"x":GetQueryString("x"),"y":GetQueryString("y"),"pageNum":pageNum,"pageSize":pageSize},
             contentType:'application/x-www-form-urlencoded;charset=UTF-8',
             success: function (data) {
                 var htmls="";
