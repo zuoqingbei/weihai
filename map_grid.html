@@ -62,20 +62,25 @@
     //    map.enableScrollWheelZoom();                 //启用滚轮放大缩小
     var tileLayer = new BMap.TileLayer({isTransparentPng: true});
     // 百度地图API功能
-    var data_info = [];
+    var data_info =[];
+    var allFirstPoint={};
+    var lastUpdate=getNowFormatDate();
 
     //网格图片的大小
     var TILE_SIZE = 80;
     var opts = {
         enableMessage:true//设置允许信息窗发送短息
     };
-  var dataUrl="http://60.212.191.147:8082/taxi";
-   // var dataUrl="http://localhost:8089/taxi";
-    gridData(true);
+    var dataUrl="http://60.212.191.147:8082/taxi";
+    //var dataUrl="http://localhost:8089/taxi";
+
     var cavasInterval;//绘图定时器
     var needReDraw=false;
     var gridDataInterval;//获取数据定时器
-    function reDrawMap(){
+    var gridPointMap=[];//增量点
+    var oldPointMap=[];//增量点上一次的坐标信息
+    gridData();
+   /* function reDrawMap(){
         if(needReDraw){
             map.clearOverlays();
             console.log(111111111111111);
@@ -83,7 +88,7 @@
             drawMap();
             needReDraw=false;
         }
-    }
+    }*/
     //坐标转换完之后的回调函数
     /*translateCallback = function (data){
         if(data.status === 0) {
@@ -141,7 +146,7 @@
     });
     var carid;
     //加载网格数据
-    function gridData(isFirst){
+    function gridData(){
         $.ajax({
             url: dataUrl+"/taxi/taxiLocationIfoAjax",
             type: 'post',
@@ -149,31 +154,80 @@
             contentType:'application/x-www-form-urlencoded;charset=UTF-8',
             success: function (data) {
                 //加载成功 删除上次数据
-                data_info=[];
+                resetMapArr();
                 $.each(data.data,function(index,item) {
                     //暂时绑定经度 维度 车牌号信息（车牌为null的默认""） 其他信息可依次添加
                    // console.log(item)
-                    var info = [item.baidu_longitude, item.baidu_latitude, "车牌号：" + (item.carnumber == null ? "" : item.carnumber),tileCoordinate];
+                    var info = [item.baidu_longitude, item.baidu_latitude, "车牌号：" + (item.carnumber == null ? "" : item.carnumber),tileCoordinate,item.sim];
                     data_info.push(info);
                 });
-                if(isFirst){
-                    //    单个点的点击事件 显示这个点的信息
-                    //第一次加载数据 绘图 并且开启重绘定时器 获取数据定时器
-                    drawMap();
-                   // cavasInterval = window.setInterval("reDrawMap()",5000);
-                    gridDataInterval= window.setInterval("gridData(false)",10000);
-                }else{
-                    //needReDraw=true;
-                    map.clearOverlays();
-                    console.log("ReDraw");
-                    // window.setTimeout(drawMap(),1000);
-                    drawMap();
-                }
+                drawMap();
+                gridDataInterval= window.setInterval("gridIncrementData()",5000);
 
             }
         });
     }
+    function resetMapArr(){
+        data_info=[];
+        resetIncrementMapArr();
+    }
+    function resetIncrementMapArr(){
+        gridPointMap=[];
+        oldPointMap=[];
+    }
+    //网格增量数据
+    function gridIncrementData(){
+        $.ajax({
+            url: dataUrl+"/taxi/taxiLocationIfoAjax",
+            type: 'post',
+            data:{"lastUpdate":lastUpdate},
+            dataType: 'JSONP',//here
+            contentType:'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                lastUpdate=getNowFormatDate();
+                resetIncrementMapArr();
+                $.each(data.data,function(index,item) {
+                    //暂时绑定经度 维度 车牌号信息（车牌为null的默认""） 其他信息可依次添加
+                    var info = [item.baidu_longitude, item.baidu_latitude, "车牌号：" + (item.carnumber == null ? "" : item.carnumber),tileCoordinate,item.sim];
+                    gridPointMap.push(info);
+                    var point = new BMap.Point(item.baidu_longitude,item.baidu_latitude);
+                    //获取增量点上一次坐标信息 方便在地图上删除更新
+                    oldPointMap.push(allFirstPoint[item.sim]);
+                    //更新全部点map集合 方便下一次增量取数之后坐标对比
+                    allFirstPoint[item.sim]=point;
+                });
+                console.log("ReDraw");
+                // window.setTimeout(drawMap(),1000);
+                //获取地图上已经绘制的全部点
+               var  lays=map.getOverlays();
+               $.each(lays,function(index,item){
+                   if(item.point!=null){
+                        for(var x=0;x<oldPointMap.length;x++){
+                            //移除上一次增量点
+                            if(oldPointMap[x].equals(item.point)){
+                                map.removeOverlay(item);
+                            }
+                        }
+                   }
+               });
+               //绘制新增点
+                var myIcon = new BMap.Icon("images/icon2.png", new BMap.Size(16,20));
+                for(var i=0;i<gridPointMap.length;i++){
+//                    for(var i=0;i<50;i++){
+                    point = new BMap.Point(gridPointMap[i][0],gridPointMap[i][1]);
+                    carid=gridPointMap[i][2];
+
+                    var marker = new BMap.Marker(point,{icon:myIcon});
+                    var content='';
+                    content += '<span style="">'+'经度：'+point.lng+'<br>'+'纬度：'+point.lat+'<br>'+carid+'</span><br>';
+                    map.addOverlay(marker);                // 将标注添加到地图中
+                    addMouseoverHandler(content,marker);
+                }
+            }
+        });
+    }
     function drawMap(){
+        //将map转数组 data_info.push(info);
         var myIcon = new BMap.Icon("images/icon2.png", new BMap.Size(16,20));
         for(var i=0;i<data_info.length;i++){
 //                    for(var i=0;i<50;i++){
@@ -184,12 +238,10 @@
             var content='';
             content += '<span style="">'+'经度：'+point.lng+'<br>'+'纬度：'+point.lat+'<br>'+carid+'</span><br>';
             map.addOverlay(marker);                // 将标注添加到地图中
+            allFirstPoint[data_info[i][4]]=point;
             addMouseoverHandler(content,marker);
-            /*  var convertor = new BMap.Convertor();
-             var pointArr = [];
-             pointArr.push(point);
-             convertor.translate(pointArr, 1, 5, translateCallback);*/
         }
+        console.log(map.getOverlays())
     }
     var tileCoordinate=[]
     function addMouseoverHandler(content,marker){
@@ -223,5 +275,21 @@
     $(".btn").click(function () {
         window.open('map_grid.html' , '_blank')
     })
-
+    function getNowFormatDate() {
+        var date = new Date();
+        var seperator1 = "-";
+        var seperator2 = ":";
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+            + " " + date.getHours() + seperator2 + date.getMinutes()
+            + seperator2 + date.getSeconds();
+        return currentdate;
+    }
 </script>
