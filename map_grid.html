@@ -64,15 +64,15 @@
     // 百度地图API功能
     var data_info =[];
     var allFirstPoint={};
-    var lastUpdate=getNowFormatDate();
+    //var lastUpdate=getNowFormatDate();
 
     //网格图片的大小
     var TILE_SIZE = 80;
     var opts = {
         enableMessage:true//设置允许信息窗发送短息
     };
-    var dataUrl="http://60.212.191.147:8082/taxi";
-    //var dataUrl="http://localhost:8089/taxi";
+   var dataUrl="http://60.212.191.147:8082/taxi";
+    var dataUrl="http://localhost:8089/taxi";
 
     var cavasInterval;//绘图定时器
     var needReDraw=false;
@@ -145,6 +145,7 @@
 //
     });
     var carid;
+    var intervalSecond=5000;
     //加载网格数据
     function gridData(){
         $.ajax({
@@ -162,7 +163,7 @@
                     data_info.push(info);
                 });
                 drawMap();
-                gridDataInterval= window.setInterval("gridIncrementData()",5000);
+                gridDataInterval= window.setInterval("gridIncrementData()",intervalSecond);
 
             }
         });
@@ -180,11 +181,11 @@
         $.ajax({
             url: dataUrl+"/taxi/taxiLocationIfoAjax",
             type: 'post',
-            data:{"lastUpdate":lastUpdate},
+            data:{"intervalSecond":intervalSecond},
             dataType: 'JSONP',//here
             contentType:'application/x-www-form-urlencoded;charset=UTF-8',
             success: function (data) {
-                lastUpdate=getNowFormatDate();
+                //lastUpdate=getNowFormatDate();
                 resetIncrementMapArr();
                 $.each(data.data,function(index,item) {
                     //暂时绑定经度 维度 车牌号信息（车牌为null的默认""） 其他信息可依次添加
