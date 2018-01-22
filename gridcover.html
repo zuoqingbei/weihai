@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>威海市区出租车网格化管理</title>
+
+    <link rel="stylesheet" href="css/common.css"/>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 tooltipss and media queries -->
+    <!--&lt;!&ndash;[if lt IE 9]>-->
+    <script src="asserts/js/html5shiv.js"></script>
+    <script src="asserts/js/respond.min.js"></script>
+    <!--<script src="asserts/js/browser.js"></script>-->
+    <script src="js/jquery-2.2.4.js"></script>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=yxaHr6cPDn9Cwag0fdxefV2s"></script>
+    <script src="js/bmap.min.js"></script>
+    <style type="text/css">
+        html {height: 100%;}
+        body{height: 100%; margin: 0px; padding: 0px;}
+        #container{height: 100%;}
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div class="header">
+    <h1>威海市区出租车网格化管理</h1>
+    <div class="btn"></div>
+</div>
+</body>
+</html>
+<script>
+   // var dataUrl="http://60.212.191.147:8082/taxi";
+    var dataUrl="http://localhost:8080/taxi";
+    // 百度地图API功能
+    var map = new BMap.Map("container");            // 创建Map实例
+   map.centerAndZoom(new BMap.Point(122.1, 37.5), 13);   // 创建点坐标 初始化地图,设置中心点坐标和地图级别。
+    // 初始化地图， 设置中心点坐标和地图级别
+    // 定义自定义覆盖物的构造函数
+    function SquareOverlay (center, length,height, color,item) {
+        this._center = center;
+        this._length = length;
+        this._height = height;
+        this._color = color;
+        this._item=item;
+    }
+    // 继承API的BMap.Overlay
+    SquareOverlay.prototype = new BMap.Overlay();
+    // 实现初始化方法
+    SquareOverlay.prototype.initialize = function (map) {
+        // 保存map对象实例
+        this._map = map;
+        // 创建div元素，作为自定义覆盖物的容器
+        var div = document.createElement("div");
+        div.style.position = "absolute";
+        // 可以根据参数设置元素外观
+        div.style.width = this._length + "px";
+        div.style.height = this._height + "px";
+        div.style.background = this._color;
+        div.style.border="1px solid #875F9F";
+        div.style.opacity="0.4";
+        div.style.textAlign="center";
+       /* if(this._item.nums!="0"){
+            div.innerHTML=""+this._item.nums+"/"+this._item.rate+"%";
+            div.style.fontSize="0.8em";
+        }*/
+        div.style.padding="0px";
+        div.style.margin="0px";
+        if(this._item.nums!="0"){
+            $(div).append("<span style='position:relative;top:1.2em;font-size:0.7em;'>数量："+this._item.nums+
+                "</br>比值："+this._item.rate+"%</span>");
+        };
+
+        // 将div添加到覆盖物容器中
+        map.getPanes().markerPane.appendChild(div);
+        // 保存div实例
+        this._div = div;
+        // 需要将div元素作为方法的返回值，当调用该覆盖物的show、
+        // hide方法，或者对覆盖物进行移除时，API都将操作此元素。
+        return div;
+    }
+    // 实现绘制方法
+
+    SquareOverlay.prototype.draw = function () {
+        // 根据地理坐标转换为像素坐标，并设置给容器
+        var position = this._map.pointToOverlayPixel(this._center);
+        this._div.style.left = position.x - this._length / 2 + "px";
+         this._div.style.top = position.y - this._height / 2 + "px";
+
+    }
+   $(function(){
+      // showGrid();
+       gridData();
+   });
+   function gridData(){
+       $.ajax({
+           url: dataUrl+"/taxi/getGridData",
+           type: 'post',
+           dataType: 'JSONP',//here
+           contentType:'application/x-www-form-urlencoded;charset=UTF-8',
+           data:{"value":100},
+           success: function (data) {
+               $.each(data.data,function(index,item) {
+                   // 添加自定义覆盖物
+                   var mySquare = new SquareOverlay(new BMap.Point(parseFloat(item.leftlon)+0.0118125, parseFloat(item.leftlat)-0.009),
+                      81,78,getRandomColor(item) ,item);
+                   map.addOverlay(mySquare);
+               });
+           }
+       });
+   }
+   map.addEventListener('click', function(e){
+
+
+       var lngLat = e.point;
+       var page="gridtables.html?x="+lngLat.lng +"&y="+lngLat.lat;
+      window.open(page , '_blank');
+
+
+   });
+   /**
+    前端展示修改为显示网格阈值与车辆数。颜色根据车辆数/阈值比例进行展示，
+    便于识别出需要重点关注的网格，低于50%透明，51%-80%绿色，81-90%黄色，
+    91%以上显示红色，点击相关网格时，显示出所有车辆明细。
+    */
+    function getRandomColor(item){
+        var rate=parseFloat(item.rate);
+        if(rate<=50){
+            return "#fff";
+        }else if(rate>50&&rate<=80){
+            return "#39D230";
+        }else if(rate>=0&&rate<=90){
+            return "#DBDD26";
+        }else if(rate>90){
+            return "#FC4104";
+        }
+
+    }
+</script>
