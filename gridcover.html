@@ -29,8 +29,10 @@
 </body>
 </html>
 <script>
-   // var dataUrl="http://60.212.191.147:8082/taxi";
-    var dataUrl="http://localhost:8080/taxi";
+    var dataUrl="http://60.212.191.147:8082/taxi";
+  //var dataUrl="http://localhost:8080/taxi";
+    var mData=new Map();
+   var mOverlay=new Map();
     // 百度地图API功能
     var map = new BMap.Map("container");            // 创建Map实例
    map.centerAndZoom(new BMap.Point(122.1, 37.5), 13);   // 创建点坐标 初始化地图,设置中心点坐标和地图级别。
@@ -43,6 +45,7 @@
         this._color = color;
         this._item=item;
     }
+
     // 继承API的BMap.Overlay
     SquareOverlay.prototype = new BMap.Overlay();
     // 实现初始化方法
@@ -51,13 +54,14 @@
         this._map = map;
         // 创建div元素，作为自定义覆盖物的容器
         var div = document.createElement("div");
+        div.id="cover_"+this._item.id;
         div.style.position = "absolute";
         // 可以根据参数设置元素外观
         div.style.width = this._length + "px";
         div.style.height = this._height + "px";
         div.style.background = this._color;
         div.style.border="1px solid #875F9F";
-        div.style.opacity="0.4";
+        div.style.opacity="0.3";
         div.style.textAlign="center";
        /* if(this._item.nums!="0"){
             div.innerHTML=""+this._item.nums+"/"+this._item.rate+"%";
@@ -65,8 +69,8 @@
         }*/
         div.style.padding="0px";
         div.style.margin="0px";
-        if(this._item.nums!="0"){
-            $(div).append("<span style='position:relative;top:1.2em;font-size:0.7em;'>数量："+this._item.nums+
+        if(this._item.nums!="0"&&this._item.nums!=null&&this._item.nums!="null"){
+            $(div).append("<span style='position:relative;top:1.2em;font-size:0.7em;font-family: fantasy'>数量："+this._item.nums+
                 "</br>比值："+this._item.rate+"%</span>");
         };
 
@@ -87,9 +91,11 @@
          this._div.style.top = position.y - this._height / 2 + "px";
 
     }
+    var isFirst=true;
    $(function(){
       // showGrid();
        gridData();
+
    });
    function gridData(){
        $.ajax({
@@ -97,13 +103,29 @@
            type: 'post',
            dataType: 'JSONP',//here
            contentType:'application/x-www-form-urlencoded;charset=UTF-8',
-           data:{"value":100},
            success: function (data) {
                $.each(data.data,function(index,item) {
                    // 添加自定义覆盖物
-                   var mySquare = new SquareOverlay(new BMap.Point(parseFloat(item.leftlon)+0.0118125, parseFloat(item.leftlat)-0.009),
-                      81,78,getRandomColor(item) ,item);
-                   map.addOverlay(mySquare);
+                   var point=new BMap.Point(parseFloat(item.leftlon)+0.0118125, parseFloat(item.leftlat)-0.009);
+                   var preItem=mData.get(item.id);
+                   var mySquare = new SquareOverlay(point,
+                       81,78,getRandomColor(item) ,item);
+                   if(preItem==null||preItem=="undefined"){
+                       map.addOverlay(mySquare);
+                   }else{
+                       if(preItem.nums!=item.nums){
+                           //更新了
+                           console.log("更新了"+preItem.nums+"--"+item.nums);
+                           map.removeOverlay(mOverlay.get(item.id));
+                           $("#cover_"+item.id).remove();
+                           map.addOverlay(mySquare);
+                       }
+                   }
+                   mData.put(item.id,item);
+                   mOverlay.put(item.id,mySquare);
+                    if(isFirst){
+                        window.setInterval("gridData()",5000);
+                    }
                });
            }
        });
@@ -127,12 +149,54 @@
         if(rate<=50){
             return "#fff";
         }else if(rate>50&&rate<=80){
-            return "#39D230";
+            return "#16d213";
         }else if(rate>=0&&rate<=90){
-            return "#DBDD26";
+            return "#ddc53e";
         }else if(rate>90){
-            return "#FC4104";
+            return "#fc1322";
         }
 
     }
+   function Map(){
+       this.container = new Object();
+   }
+
+
+   Map.prototype.put = function(key, value){
+       this.container[key] = value;
+   }
+
+
+   Map.prototype.get = function(key){
+       return this.container[key];
+   }
+   Map.prototype.keySet = function() {
+       var keyset = new Array();
+       var count = 0;
+       for (var key in this.container) {
+// 跳过object的extend函数
+           if (key == 'extend') {
+               continue;
+           }
+           keyset[count] = key;
+           count++;
+       }
+       return keyset;
+   }
+
+
+   Map.prototype.size = function() {
+       var count = 0;
+       for (var key in this.container) {
+// 跳过object的extend函数
+           if (key == 'extend'){
+               continue;
+           }
+           count++;
+       }
+       return count;
+   };
+   Map.prototype.remove = function(key) {
+       delete this.container[key];
+   }
 </script>
